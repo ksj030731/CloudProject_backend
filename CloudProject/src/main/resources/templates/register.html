@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/springsecurity6">
+<head>
+    <title>추가 정보 입력</title>
+    <style>
+        /* ... (이전과 동일한 스타일) ... */
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h1>환영합니다!</h1>
+    <p class="welcome-message">
+        서비스 이용을 위해 추가 정보가 필요합니다.<br>
+        (현재 임시 권한: <span sec:authentication="principal.authorities"></span>)
+    </p>
+
+    <form th:action="@{/api/auth/register-social}" method="post">
+        <div class="info-display">
+            <div>
+                <span class="info-label">이메일:</span>
+                <span class="info-value" sec:authentication="principal.email"></span>
+            </div>
+            <div>
+                <span class="info-label">가입경로:</span>
+                <span class="info-value" sec:authentication="principal.provider"></span>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="form-group">
+            <label for="nickname">닉네임 (필수):</label>
+            <input type="text" id="nickname" name="nickname" required>
+        </div>
+        <div class="form-group">
+            <label for="region">지역 (필수):</label>
+            <input type="text" id="region" name="region" required>
+        </div>
+
+        <button type="submit" class="submit-button">가입 완료</button>
+    </form>
+</div>
+
+</body>
+</html>
