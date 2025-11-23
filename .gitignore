@@ -1,7 +1,6 @@
 HELP.md
 .gradle
 build/
-!gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
@@ -38,7 +37,7 @@ out/
 
 src/main/resources/application-local.properties
 src/main/resources/application-prod.properties
-src/main/resources/application-db.properties
+
 
 # 로그 파일
 *.log
