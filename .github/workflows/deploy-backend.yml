@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      
+      # 1. 자바 빌드 환경 설정
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
@@ -20,19 +22,19 @@ jobs:
           chmod +x gradlew
           ./gradlew clean build -x test
 
-      # jar 파일 전송
+      # 2. JAR 파일 전송 (target 경로 수정)
       - name: Copy Jar to server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }} # Secrets에 'ubuntu'라고 등록하세요!
+          username: ${{ secrets.SERVER_USER }} 
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
           source: "build/libs/*SNAPSHOT.jar"
-          target: "/home/ubuntu/app/backend" # 기존 경로로 변경!
+          target: "/home/ubuntu/app" # 🎯 핵심 수정 1: JAR 파일이 /home/ubuntu/app 바로 아래로!
           strip_components: 2
 
-      # 실행
+      # 3. 서버에서 실행 (script 내용 수정)
       - name: Execute Server Script
         uses: appleboy/ssh-action@master
         with:
@@ -41,7 +43,9 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            # 기존 백엔드 종료
+            # 1. 기존 8080 포트 프로세스 종료
             fuser -k 8080/tcp || true
-            # 새 파일 실행 (경로가 /home/ubuntu/app/backend 인지 확인!)
-            nohup java -jar /home/ubuntu/app/*SNAPSHOT.jar > /home/ubuntu/app/backend/backend.log 2>&1 &
+            
+            # 2. 새 파일 실행 (JAR 파일 경로 수정)
+            # /home/ubuntu/app/ 폴더 바로 아래에서 JAR 파일을 찾도록 수정
+            nohup java -jar /home/ubuntu/app/*.jar > /home/ubuntu/app/backend.log 2>&1 & # 🎯 핵심 수정 2: 실행 경로와 로그 파일 경로 통일
