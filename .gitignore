@@ -60,3 +60,4 @@ hs_err_pid*
 # OS 파일
 .DS_Store # macOS
 Thumbs.db # Windows
+# Force CI restart 20251123
