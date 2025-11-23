@@ -1,14 +1,15 @@
 package chatting;
 
-import chatting.domain.Course;
-import chatting.domain.Facilities;
-import chatting.domain.Section;
-import chatting.repository.CourseRepository;
+import chatting.domain.*;
+import chatting.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,19 +18,36 @@ import java.util.List;
 public class DataInit implements CommandLineRunner {
 
     private final CourseRepository courseRepository;
+    private final UserRepository userRepository;
+    private final AnnouncementRepository announcementRepository;
+    private final BadgeRepository badgeRepository;
+    private final ReviewRepository reviewRepository;
+    private final CourseCompletionRepository completionRepository;
 
     @Override
     @Transactional
     public void run(String... args) throws Exception {
+        // 이미 데이터가 있으면 초기화하지 않음 (중복 방지)
+        if (userRepository.count() > 0) return;
 
-        // DB에 데이터가 이미 있으면 실행하지 않음 (중복 방지)
-        if (courseRepository.count() > 0) {
-            System.out.println("이미 데이터가 존재하여 초기화를 건너뜁니다.");
-            return;
+        System.out.println(">>> Mock Data DB 적재 시작...");
+
+        // ==========================================
+        // 0. User (가짜 유저 10명 생성 - MockData의 userId: 1~10 매칭용)
+        // ==========================================
+        String[] nicknames = {"갈맷길러버", "걷기좋아", "부산사랑", "갈맷길킹", "기장러버", "해운대마스터", "광안리걸어", "영도워커", "태종대챔피언", "중구탐험가"};
+
+        for (int i = 0; i < nicknames.length; i++) {
+            User user = User.builder()
+                    .username("user" + (i + 1))
+                    .email("user" + (i + 1) + "@test.com")
+                    .nickname(nicknames[i])
+                    .role("ROLE_USER")
+                    .provider("local")
+                    .region("부산")
+                    .build();
+            userRepository.save(user);
         }
-
-        System.out.println("초기 데이터 저장을 시작합니다...");
-
         // ==========================================
         // 1코스
         // ==========================================
@@ -481,5 +499,95 @@ public class DataInit implements CommandLineRunner {
         courseRepository.save(course9);
 
         System.out.println("============ 초기 데이터 9개 코스 저장 완료 ============");
+        // ==========================================
+        // 2. Badge (일반 뱃지 + 랭킹 뱃지)
+        // ==========================================
+        List<Badge> badges = Arrays.asList(
+                // 일반 뱃지
+                new Badge(1L, "첫 걸음", "첫 번째 코스를 완주했습니다", "🥾", "코스 1개 완주", "common"),
+                new Badge(2L, "갈맷길 마니아", "5개의 코스를 완주했습니다", "🏃‍♂️", "코스 5개 완주", "rare"),
+                new Badge(3L, "장거리 트래커", "총 100km 이상을 완주했습니다", "🎯", "누적 100km 완주", "epic"),
+                new Badge(4L, "리뷰어", "첫 번째 리뷰를 작성했습니다", "✍️", "리뷰 1개 작성", "common"),
+                new Badge(5L, "갈맷길 정복자", "모든 갈맷길 코스를 완주했습니다", "👑", "전체 9개 코스 완주", "legendary"),
+                new Badge(6L, "해안길 마스터", "1~4코스 해안길을 모두 완주했습니다", "🌊", "해안 코스 완주", "rare"),
+                new Badge(7L, "산악길 정복자", "6~7코스 산악길을 모두 완주했습니다", "⛰️", "산악 코스 완주", "rare"),
+
+                // 랭킹 특별 뱃지 (ID 13~)
+                new Badge(13L, "월간 챔피언", "월간 랭킹 1위를 달성했습니다", "🏆", "월간 랭킹 1위", "legendary"),
+                new Badge(14L, "주간 킹", "주간 랭킹 1위를 달성했습니다", "👑", "주간 랭킹 1위", "epic"),
+                new Badge(15L, "연속 완주왕", "동일 코스 10회 연속 완주", "🔥", "동일 코스 10회 완주", "rare"),
+                new Badge(16L, "스피드러너", "코스 최단 기록 보유자", "⚡", "코스 최단 기록", "epic")
+        );
+        badgeRepository.saveAll(badges);
+
+
+        // ==========================================
+        // 3. Announcement (공지사항)
+        // ==========================================
+        List<Announcement> announcements = Arrays.asList(
+                new Announcement(null, "부산 갈맷길 체험 행사 안내", "2024년 4월 부산 갈맷길 체험 행사가 개최됩니다...", LocalDateTime.parse("2024-03-20T09:00:00"), "관리자", "event"),
+                new Announcement(null, "3코스 일부 구간 보수공사 안내", "영도 갈맷길 3코스 일부 구간에서 보수공사가 진행됩니다...", LocalDateTime.parse("2024-03-18T14:30:00"), "관리자", "maintenance"),
+                new Announcement(null, "새로운 편의시설 설치 완료", "1코스와 5코스에 새로운 휴게시설과 안내판이 설치되었습니다.", LocalDateTime.parse("2024-03-15T11:00:00"), "관리자", "notice")
+        );
+        announcementRepository.saveAll(announcements);
+
+
+        // ==========================================
+        // 4. Review (리뷰)
+        // ==========================================
+        // (ID값으로 User와 Course를 찾아서 연결해야 함)
+        createReview(1L, 1L, 5, "1코스 정말 아름다운 코스였습니다!...");
+        createReview(2L, 2L, 4, "해운대에서 광안리까지 걷는 코스가 정말 인상적이었어요...");
+        createReview(3L, 3L, 5, "태종대까지 이어지는 긴 코스지만 부산의 다양한 모습을...");
+
+
+        // ==========================================
+        // 5. CourseCompletion (완주 기록) -> mockCompletions 기반
+        // ==========================================
+        createCompletion(1L, 1L, "02:45:30", "2024-03-20", 15);
+        createCompletion(2L, 1L, "02:52:15", "2024-03-19", 12);
+        createCompletion(3L, 1L, "03:10:45", "2024-03-18", 8);
+        createCompletion(4L, 1L, "02:38:22", "2024-03-17", 22);
+        createCompletion(5L, 1L, "03:05:10", "2024-03-16", 6);
+        // ... (나머지 데이터도 동일한 방식으로 추가) ...
+        createCompletion(1L, 2L, "03:20:15", "2024-03-15", 10);
+        createCompletion(2L, 2L, "03:15:30", "2024-03-14", 14);
+        createCompletion(6L, 2L, "02:58:45", "2024-03-13", 18);
+        createCompletion(7L, 2L, "03:25:20", "2024-03-12", 7);
+
+        System.out.println(">>> Mock Data DB 적재 완료!");
     }
+
+    // 리뷰 생성 헬퍼 메서드
+    private void createReview(Long userId, Long courseId, int rating, String content) {
+        User user = userRepository.findById(userId).orElseThrow();
+        Course course = courseRepository.findById(courseId).orElseThrow();
+
+        Review review = Review.builder()
+                .user(user)
+                .course(course)
+                .rating((byte) rating)
+                .content(content)
+                .build(); // createdAt 등은 엔티티 설정에 따라 자동 주입되거나 수동 설정 필요
+        reviewRepository.save(review);
+    }
+
+    // 완주 기록 생성 헬퍼 메서드
+    private void createCompletion(Long userId, Long courseId, String time, String dateStr, int count) {
+        User user = userRepository.findById(userId).orElseThrow();
+        Course course = courseRepository.findById(courseId).orElseThrow();
+
+        CourseCompletion completion = CourseCompletion.builder()
+                .user(user)
+                .course(course)
+                .completionTime(time)
+                .date(LocalDate.parse(dateStr))
+                .completionCount(count)
+                .build();
+        completionRepository.save(completion);
+    }
+
+
+
+
 }

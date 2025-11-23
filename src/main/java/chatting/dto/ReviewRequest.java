@@ -2,14 +2,15 @@ package chatting.dto;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.NoArgsConstructor;
 
-@Setter
 @Getter
+@Setter
+@NoArgsConstructor
 public class ReviewRequest {
-    private String userId;
-    private String courseId;
+    // 프론트엔드에서 숫자로 보내므로 Long 사용 (String -> Long 자동 변환도 되지만 명시적인게 좋음)
+    private Long userId;
+    private Long courseId;
     private Byte rating;
     private String content;
-
-
 }

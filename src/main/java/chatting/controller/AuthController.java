@@ -1,15 +1,9 @@
 package chatting.controller;
 
-import chatting.config.auth.PrincipalDetails;
 import chatting.domain.User;
 import chatting.dto.RegisterRequestDto;
-import chatting.dto.SocialRegisterRequestDto;
 import chatting.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,86 +13,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
 public class AuthController {
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // 1.일반 회원가입 처리
+    // 1. 일반 회원가입 처리
+    // URL: POST /api/auth/register
     @PostMapping("/register")
     public String register(RegisterRequestDto registerRequestDto) {
-
-        // (참고: username, email 중복 체크 등 예외처리 로직이 필요합니다)
+        // (참고: 실무에서는 Service 계층으로 로직을 옮기는 것이 좋습니다)
         User user = registerRequestDto.toEntity(passwordEncoder);
         userRepository.save(user);
 
         return "redirect:/login"; // 회원가입 성공 시 로그인 페이지로
     }
 
-    // 1. 일반 회원가입 처리
-    // (소셜 추가 정보 입력 - 변경)
-    @PostMapping("/register-social")
-    public String registerSocialUpdate(
-            SocialRegisterRequestDto socialRegisterRequestDto,
-            @AuthenticationPrincipal PrincipalDetails principalDetails
-    ) {
-        // (변경) principalDetails.getUser() 대신 getId() 사용
-        Long userId = principalDetails.getId();
-
-        // (핵심) DB에서 User 엔티티를 '다시 조회' (새 트랜잭션)
-        User userEntity = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-        // 3. 닉네임, 지역 정보 업데이트 + ROLE_USER로 등업
-        userEntity.updateSocialInfo(
-                socialRegisterRequestDto.getNickname(),
-                socialRegisterRequestDto.getRegion()
-        );
-        userRepository.save(userEntity);
-
-        // 4. 세션(SecurityContext) 인증 정보 갱신
-
-        // (변경) User 엔티티 대신, 업데이트된 데이터로 새 PrincipalDetails 생성
-        PrincipalDetails newPrincipalDetails = new PrincipalDetails(
-                userEntity.getId(),
-                userEntity.getUsername(),
-                userEntity.getEmail(),
-                userEntity.getRole(), // "ROLE_USER"로 변경됨
-                userEntity.getProvider(),
-                principalDetails.getAttributes(), // 기존 attributes
-                userEntity.getRegion()
-        );
-
-        // 4-2. 새 Authentication 객체 생성
-        Authentication newAuthentication = new UsernamePasswordAuthenticationToken(
-                newPrincipalDetails,
-                null,
-                newPrincipalDetails.getAuthorities() // (업데이트된 권한)
-        );
-
-        // 4-3. SecurityContext에 새 Authentication 객체 설정
-        SecurityContextHolder.getContext().setAuthentication(newAuthentication);
-
-        return "redirect:/"; // 메인 페이지로
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    // ❌ [삭제됨] registerSocialUpdate 메서드
+    // 이유: ApiController의 completeSignup 메서드와 URL(/api/auth/register-social)이 겹쳐서
+    // 서버 실행 오류(Ambiguous mapping)가 발생하므로 삭제했습니다.
+    // 이제 해당 기능은 ApiController에서 담당합니다.
 }
