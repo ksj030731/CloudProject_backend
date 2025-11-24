@@ -6,6 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
@@ -13,8 +14,9 @@ import java.util.Map;
 @Getter
 
 //UserDetails(폼 로그인)와 Oauth2User(소셜 로그인)을 모두 구현하는 통일 인증 객체
-public class PrincipalDetails implements UserDetails, OAuth2User {
+public class PrincipalDetails implements UserDetails, OAuth2User , Serializable {
 
+    private static final long serialVersionUID = 1L;
     // (User 엔티티 대신) DB에서 가져온 '데이터'를 직접 필드로 가짐
     private Long id;
     private String username;
