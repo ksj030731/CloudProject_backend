@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v3
 
       # 2. 자바 개발환경(JDK) 세팅
-      # (사용 중인 Java 24 버전에 맞췄습니다. 혹시 에러 나면 '21'로 변경해보세요)
+      # (Java 24 사용 중. 혹시 빌드 에러 나면 '21'이나 '17'로 낮춰보세요)
       - name: Set up JDK 24
         uses: actions/setup-java@v3
         with:
@@ -26,18 +26,21 @@ jobs:
           chmod +x ./gradlew
           ./gradlew clean build -x test
 
-      # 4. 서버로 jar 파일 전송 (SCP)
-      - name: Copy Jar to Server
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }}
-          port: 22
-          # 빌드된 jar 파일 경로
-          source: "build/libs/*.jar"
-          target: "/home/ubuntu/app"
-          strip_components: 2
+      # -----------------------------------------------------------------------
+      # 4. [수정됨] 서버로 jar 파일 전송 (Manual SCP 방식)
+      # 기존 플러그인이 대용량 파일 전송 시 멈추는 버그를 해결하기 위해
+      # 리눅스 기본 명령어(scp)를 직접 사용하여 안정적으로 전송합니다.
+      # -----------------------------------------------------------------------
+      - name: Copy Jar to Server (Manual SCP)
+        run: |
+          # 1) sshpass 설치 (비밀번호 입력을 도와주는 도구)
+          sudo apt-get update
+          sudo apt-get install -y sshpass
+
+          # 2) 파일 전송 실행
+          # -o StrictHostKeyChecking=no : 처음 접속할 때 '계속 연결하시겠습니까?' 질문 무시
+          # build/libs/*.jar : 빌드된 결과물
+          sshpass -p "${{ secrets.PASSWORD }}" scp -o StrictHostKeyChecking=no build/libs/*.jar ${{ secrets.USERNAME }}@${{ secrets.HOST }}:/home/ubuntu/app/
 
       # 5. 서버 접속해서 재시작 (SSH)
       - name: Restart Spring Boot
@@ -50,15 +53,16 @@ jobs:
           script: |
             cd /home/ubuntu/app
 
-            # 1. 기존 서버 종료
+            # 1) 기존 서버 종료
             echo "🛑 기존 서버를 종료합니다..."
             fuser -k 8080/tcp || true
             sleep 5
 
-            # 2. 새 서버 실행 (메모리 제한 옵션 추가됨!)
+            # 2) 새 서버 실행
             echo "🚀 새 서버를 실행합니다..."
             
-            # [수정됨]
-            # -Xmx512m : 최대 메모리를 512MB로 제한 (Micro 서버 튕김 방지 필수 옵션)
-            # -Djava.security.egd : 난수 생성 속도 향상 (부팅 지연 방지)
+            # [중요 옵션 설명]
+            # -Xmx512m : 램이 1GB인 Micro 서버에서 자바가 혼자 다 쓰다가 죽는 것을 방지 (최대 512MB만 사용)
+            # -Djava.security.egd... : 리눅스 서버에서 스프링 부팅 속도를 빠르게 하는 옵션
+            # nohup ... & : 터미널을 꺼도 서버가 계속 돌아가게 하는 명령어
             nohup java -Xmx512m -Djava.security.egd=file:/dev/./urandom -jar *.jar --spring.profiles.active=prod > app.log 2>&1 &
