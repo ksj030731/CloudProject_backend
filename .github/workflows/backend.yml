@@ -41,7 +41,7 @@ jobs:
           strip_components: 2
 
       # 5. 서버 접속해서 재시작 (SSH)
-      - name: Restart Spring Boot
+     - name: Restart Spring Boot
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
@@ -49,17 +49,15 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: 22
           script: |
-            # 1) 작업 폴더로 이동
             cd /home/ubuntu/app
 
-            # 2) 8080 포트 쓰고 있는 기존 서버 강제 종료
-            # (fuser가 설치되어 있는 것을 확인했으므로 바로 사용합니다)
+            # 1. 기존 서버 종료
+            echo "🛑 기존 서버를 종료합니다..."
             fuser -k 8080/tcp || true
-
-            # 3) 완전히 꺼질 때까지 5초 대기
             sleep 5
 
-            # 4) 새 Jar 파일 실행
-            # (알려주신 prod 프로파일 적용 + nohup으로 백그라운드 실행)
-            # *.jar를 쓰면 파일명 버전을 매번 안 바꿔도 돼서 편리합니다.
-            nohup java -jar *.jar --spring.profiles.active=prod > app.log 2>&1 &
+            # 2. 새 서버 실행 (님께서 쓰시던 최적화 옵션 포함!)
+            echo "🚀 새 서버를 실행합니다..."
+            # -Djava.security.egd 옵션 추가됨
+            # *.jar는 파일명 버전이 바뀌어도 알아서 찾아서 실행하라는 뜻입니다.
+            nohup java -Djava.security.egd=file:/dev/./urandom -jar *.jar --spring.profiles.active=prod > app.log 2>&1 &
