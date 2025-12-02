@@ -34,14 +34,13 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           port: 22
-          # 빌드된 jar 파일 경로 (Gradle 기본 경로)
+          # 빌드된 jar 파일 경로
           source: "build/libs/*.jar"
           target: "/home/ubuntu/app"
-          # build/libs 폴더 껍데기 2개를 벗기고 jar 알맹이만 전송
           strip_components: 2
 
       # 5. 서버 접속해서 재시작 (SSH)
-     - name: Restart Spring Boot
+      - name: Restart Spring Boot
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
@@ -56,8 +55,10 @@ jobs:
             fuser -k 8080/tcp || true
             sleep 5
 
-            # 2. 새 서버 실행 (님께서 쓰시던 최적화 옵션 포함!)
+            # 2. 새 서버 실행 (메모리 제한 옵션 추가됨!)
             echo "🚀 새 서버를 실행합니다..."
-            # -Djava.security.egd 옵션 추가됨
-            # *.jar는 파일명 버전이 바뀌어도 알아서 찾아서 실행하라는 뜻입니다.
-            nohup java -Djava.security.egd=file:/dev/./urandom -jar *.jar --spring.profiles.active=prod > app.log 2>&1 &
+            
+            # [수정됨]
+            # -Xmx512m : 최대 메모리를 512MB로 제한 (Micro 서버 튕김 방지 필수 옵션)
+            # -Djava.security.egd : 난수 생성 속도 향상 (부팅 지연 방지)
+            nohup java -Xmx512m -Djava.security.egd=file:/dev/./urandom -jar *.jar --spring.profiles.active=prod > app.log 2>&1 &
