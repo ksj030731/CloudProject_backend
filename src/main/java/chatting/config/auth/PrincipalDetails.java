@@ -8,6 +8,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Map;
 
@@ -27,8 +28,10 @@ public class PrincipalDetails implements UserDetails, OAuth2User , Serializable 
     private Map<String, Object> attributes; // (OAuth2User)
     private String region;
 
+    private LocalDateTime createDate;
+    private Double totalDistance;
     // 생성자 1: 일반 로그인 (UserDetails)
-    public PrincipalDetails(Long id, String username, String password, String email, String role, String provider , String region) {
+    public PrincipalDetails(Long id, String username, String password, String email, String role, String provider , String region , LocalDateTime createDate, Double totalDistance) {
         this.id = id;
         this.username = username;
         this.password = password;
@@ -37,10 +40,12 @@ public class PrincipalDetails implements UserDetails, OAuth2User , Serializable 
         this.provider = provider;
         this.attributes = null; // 일반 로그인은 attributes 없음
         this.region = region;
+        this.createDate = createDate;
+        this.totalDistance = totalDistance;
     }
 
     // 생성자 2: OAuth 로그인 (OAuth2User)
-    public PrincipalDetails(Long id, String username, String email, String role, String provider, Map<String, Object> attributes  ,String region) {
+    public PrincipalDetails(Long id, String username, String email, String role, String provider, Map<String, Object> attributes  ,String region , LocalDateTime createDate, Double totalDistance) {
         this.id = id;
         this.username = username;
         this.password = null; // OAuth 로그인은 password 없음
@@ -49,7 +54,10 @@ public class PrincipalDetails implements UserDetails, OAuth2User , Serializable 
         this.provider = provider;
         this.attributes = attributes;
         this.region =region;
+        this.createDate = createDate;
+        this.totalDistance = totalDistance;
     }
+
 
     // === OAuth2User 인터페이스 ===
     @Override

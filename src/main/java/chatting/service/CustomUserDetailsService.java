@@ -48,7 +48,9 @@ public class CustomUserDetailsService implements UserDetailsService {
                 user.getEmail(),
                 user.getRole(),
                 user.getProvider(),
-                user.getRegion()
+                user.getRegion(),
+                user.getCreateDate(),
+                user.getTotalDistance()
         );
     }
 }

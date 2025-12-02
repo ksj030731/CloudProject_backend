@@ -11,11 +11,16 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import java.time.LocalDateTime;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @Entity
+@EntityListeners(AuditingEntityListener.class) // 이게 있어야 @CreatedDate가 작동해서 가입일이 자동으로 들어감
 @Table(name = "users", uniqueConstraints ={
         //username과 email이 중복되지 않도록 설정
         @UniqueConstraint(columnNames = "username"),
@@ -53,6 +58,14 @@ public class User {
     @Column
     private String region;
 
+    @CreatedDate
+    @Column(updatable = false) // 수정 불가 (가입일은 바뀌면 안 되니까)
+    private LocalDateTime createDate;
+
+    // 총 거리 (기본값 0.0으로 초기화)
+    @Column(nullable = false)
+    private Double totalDistance = 0.0;
+
     @Builder
     public User(String username, String nickname, String email, String picture, String provider, String role, String password, String region) {
         this.username = username;
@@ -79,4 +92,12 @@ public class User {
         this.role = "ROLE_USER"; // GUEST -> USER 등업
         return this;
     }
+    //거리를 더하는 편의 메서드 (나중에 완주 시 사용)
+    public void addDistance(Double distance) {
+        if (this.totalDistance == null) {
+            this.totalDistance = 0.0;
+        }
+        this.totalDistance += distance;
+    }
+
 }

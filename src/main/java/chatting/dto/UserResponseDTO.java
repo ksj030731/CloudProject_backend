@@ -47,8 +47,13 @@ public class UserResponseDTO {
                 .region(user.getRegion())
                 .provider(user.getProvider())
                 .role(user.getRole())
-                .joinDate("2024-01-01") // 임시 데이터
-                .totalDistance(0.0)     // 임시 데이터
+                //  실제 가입일 연결 (null일 경우 대비)
+                .joinDate(user.getCreateDate() != null
+                ? user.getCreateDate().toLocalDate().toString()
+                : java.time.LocalDate.now().toString())
+
+                //  실제 총 거리 연결
+                .totalDistance(user.getTotalDistance() != null ? user.getTotalDistance() : 0.0)   // 임시 데이터
                 .completedCourses(Collections.emptyList())
                 .badges(Collections.emptyList())
                 .build();
@@ -67,8 +72,16 @@ public class UserResponseDTO {
                 .region(principalDetails.getRegion())
                 .provider(principalDetails.getProvider())
                 .role(principalDetails.getRole())
-                .joinDate("2024-01-01")
-                .totalDistance(0.0)
+                //실제 가입일 연결
+                //PrincipalDetails에 값이 있으면 변환, 없으면 현재 날짜
+                .joinDate(principalDetails.getCreateDate() != null
+                        ? principalDetails.getCreateDate().toLocalDate().toString()
+                        : java.time.LocalDate.now().toString())
+
+                // 실제 총 거리 연결
+                .totalDistance(principalDetails.getTotalDistance() != null
+                        ? principalDetails.getTotalDistance()
+                        : 0.0)
                 .completedCourses(Collections.emptyList())
                 .badges(Collections.emptyList())
                 .build();

@@ -56,7 +56,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 user.getRole(),
                 user.getProvider(),
                 attributes.getAttributes(), // (원본 JSON은 전달)
-                user.getRegion()
+                user.getRegion(),
+                user.getCreateDate(),
+                user.getTotalDistance()
         );
     }
 

@@ -72,7 +72,9 @@ public class AuthController {
                 "ROLE_USER", // 강제로 USER 권한 부여
                 userPrincipal.getProvider(),
                 userPrincipal.getAttributes(),
-                dto.getRegion() // 새로 입력받은 지역 정보 반영
+                dto.getRegion(),// 새로 입력받은 지역 정보 반영
+                userPrincipal.getCreateDate(),
+                userPrincipal.getTotalDistance()
         );
 
 

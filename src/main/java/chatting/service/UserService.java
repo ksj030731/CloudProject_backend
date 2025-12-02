@@ -3,6 +3,8 @@ package chatting.service;
 import chatting.domain.User;
 import chatting.dto.GeneralRegisterRequestDto; // 일반 가입용 DTO import
 import chatting.dto.SocialRegisterRequestDto;
+import chatting.dto.UserResponseDTO;
+import chatting.dto.UserUpdateDTO;
 import chatting.repository.UserRepository;
 import lombok.RequiredArgsConstructor; // 💡 생성자 주입을 간단하게
 import lombok.extern.slf4j.Slf4j;
@@ -68,5 +70,20 @@ public class UserService {
         user.setRole("ROLE_USER");
 
         log.info("DB: 소셜 회원가입 정보 업데이트 완료. User ID: {}", userId);
+    }
+
+    @Transactional
+    public UserResponseDTO updateUser(Long userId , UserUpdateDTO updateDto){
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(()-> new IllegalArgumentException("해당 사용자가 없습니다."));
+
+        if(updateDto.getNickname() !=null){
+            user.setNickname(updateDto.getNickname());
+        }
+        if(updateDto.getRegion() !=null){
+            user.setRegion(updateDto.getRegion());
+        }
+        return UserResponseDTO.from(user);
     }
 }
