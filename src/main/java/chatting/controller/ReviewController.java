@@ -54,4 +54,43 @@ public class ReviewController {
         // 4. 생성된 객체를 HTTP 201 Created 상태 코드와 함께 반환
         return ResponseEntity.status(HttpStatus.CREATED).body(newReview);
     }
+
+    // 3. 리뷰 좋아요 토글 (POST)
+    // 주소: POST /api/reviews/{reviewId}/like
+    @PostMapping("/{reviewId}/like")
+    public ResponseEntity<String> toggleLike(@PathVariable Long reviewId,
+            @RequestBody chatting.dto.ReviewLikeRequest request) {
+        log.info("API 호출: POST /api/reviews/{}/like - 좋아요 토글 요청. User ID: {}", reviewId, request.getUserId());
+        boolean liked = reviewService.toggleLike(reviewId, request.getUserId());
+        return ResponseEntity.ok(liked ? "좋아요가 추가되었습니다." : "좋아요가 취소되었습니다.");
+    }
+
+    // 4. 댓글 작성 (POST)
+    // 주소: POST /api/reviews/{reviewId}/comments
+    @PostMapping("/{reviewId}/comments")
+    public ResponseEntity<chatting.dto.ReviewCommentResponseDto> addComment(@PathVariable Long reviewId,
+            @RequestBody chatting.dto.ReviewCommentRequest request) {
+        log.info("API 호출: POST /api/reviews/{}/comments - 댓글 작성 요청. User ID: {}", reviewId, request.getUserId());
+        chatting.dto.ReviewCommentResponseDto comment = reviewService.addComment(reviewId, request.getUserId(),
+                request.getContent());
+        return ResponseEntity.status(HttpStatus.CREATED).body(comment);
+    }
+
+    // 5. 댓글 조회 (GET)
+    // 주소: GET /api/reviews/{reviewId}/comments
+    @GetMapping("/{reviewId}/comments")
+    public ResponseEntity<List<chatting.dto.ReviewCommentResponseDto>> getComments(@PathVariable Long reviewId) {
+        log.info("API 호출: GET /api/reviews/{}/comments - 댓글 조회 요청.", reviewId);
+        List<chatting.dto.ReviewCommentResponseDto> comments = reviewService.getComments(reviewId);
+        return ResponseEntity.ok(comments);
+    }
+
+    // 6. 리뷰 삭제 (DELETE)
+    // 주소: DELETE /api/reviews/{reviewId}?userId={userId}
+    @DeleteMapping("/{reviewId}")
+    public ResponseEntity<String> deleteReview(@PathVariable Long reviewId, @RequestParam Long userId) {
+        log.info("API 호출: DELETE /api/reviews/{} - 리뷰 삭제 요청. User ID: {}", reviewId, userId);
+        reviewService.deleteReview(reviewId, userId);
+        return ResponseEntity.ok("리뷰가 삭제되었습니다.");
+    }
 }

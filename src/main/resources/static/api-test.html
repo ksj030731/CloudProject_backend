@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test Page</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .section { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        h2 { margin-top: 0; }
+        label { display: block; margin-bottom: 5px; }
+        input, textarea { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
+        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        pre { background-color: #f4f4f4; padding: 10px; overflow-x: auto; }
+        .response { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>API Compatibility Test</h1>
+    <p>Use this page to verify backend endpoints without the frontend application.</p>
+
+    <div class="section">
+        <h2>1. Get Reviews</h2>
+        <button onclick="getReviews()">Fetch Reviews</button>
+        <div class="response">
+            <strong>Response:</strong>
+            <pre id="reviewsResponse">Waiting...</pre>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>2. Toggle Like</h2>
+        <label>Review ID:</label>
+        <input type="number" id="likeReviewId" value="1">
+        <label>User ID (Simulator):</label>
+        <input type="number" id="likeUserId" value="1">
+        <button onclick="toggleLike()">Toggle Like</button>
+        <div class="response">
+            <strong>Response:</strong>
+            <pre id="likeResponse">Waiting...</pre>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>3. Add Comment</h2>
+        <label>Review ID:</label>
+        <input type="number" id="commentReviewId" value="1">
+        <label>User ID (Simulator):</label>
+        <input type="number" id="commentUserId" value="1">
+        <label>Content:</label>
+        <textarea id="commentContent" rows="3">This is a test comment.</textarea>
+        <button onclick="addComment()">Add Comment</button>
+        <div class="response">
+            <strong>Response:</strong>
+            <pre id="commentResponse">Waiting...</pre>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>4. Get Comments</h2>
+        <label>Review ID:</label>
+        <input type="number" id="getCommentsReviewId" value="1">
+        <button onclick="getComments()">Fetch Comments</button>
+        <div class="response">
+            <strong>Response:</strong>
+            <pre id="getCommentsResponse">Waiting...</pre>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080/api/reviews';
+
+        async function getReviews() {
+            try {
+                const res = await fetch(API_BASE);
+                const data = await res.json();
+                document.getElementById('reviewsResponse').textContent = JSON.stringify(data, null, 2);
+            } catch (err) {
+                document.getElementById('reviewsResponse').textContent = 'Error: ' + err.message;
+            }
+        }
+
+        async function toggleLike() {
+            const reviewId = document.getElementById('likeReviewId').value;
+            const userId = document.getElementById('likeUserId').value;
+            try {
+                const res = await fetch(`${API_BASE}/${reviewId}/like`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: parseInt(userId) })
+                });
+                const text = await res.text();
+                document.getElementById('likeResponse').textContent = `Status: ${res.status}\nBody: ${text}`;
+            } catch (err) {
+                document.getElementById('likeResponse').textContent = 'Error: ' + err.message;
+            }
+        }
+
+        async function addComment() {
+            const reviewId = document.getElementById('commentReviewId').value;
+            const userId = document.getElementById('commentUserId').value;
+            const content = document.getElementById('commentContent').value;
+            try {
+                const res = await fetch(`${API_BASE}/${reviewId}/comments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: parseInt(userId), content: content })
+                });
+                const data = await res.json();
+                document.getElementById('commentResponse').textContent = JSON.stringify(data, null, 2);
+            } catch (err) {
+                document.getElementById('commentResponse').textContent = 'Error: ' + err.message;
+            }
+        }
+
+        async function getComments() {
+            const reviewId = document.getElementById('getCommentsReviewId').value;
+            try {
+                const res = await fetch(`${API_BASE}/${reviewId}/comments`);
+                const data = await res.json();
+                document.getElementById('getCommentsResponse').textContent = JSON.stringify(data, null, 2);
+            } catch (err) {
+                document.getElementById('getCommentsResponse').textContent = 'Error: ' + err.message;
+            }
+        }
+    </script>
+</body>
+</html>

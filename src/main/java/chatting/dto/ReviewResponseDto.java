@@ -20,6 +20,7 @@ public class ReviewResponseDto {
     private List<String> photos; // 현재 DB에 없으면 빈 리스트 반환
     private String date; // createdAt을 문자열로 변환
     private Integer likes; // 현재 DB에 없으면 0 반환
+    private Integer commentCount;
 
     public ReviewResponseDto(Review review) {
         this.id = review.getId();
@@ -44,5 +45,14 @@ public class ReviewResponseDto {
         // 임시 데이터 (DB에 해당 컬럼이 생기기 전까지 기본값 제공)
         this.photos = Collections.emptyList();
         this.likes = 0;
+        this.commentCount = 0;
+    }
+
+    public void setLikes(Integer likes) {
+        this.likes = likes;
+    }
+
+    public void setCommentCount(Integer commentCount) {
+        this.commentCount = commentCount;
     }
 }
