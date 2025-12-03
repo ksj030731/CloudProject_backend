@@ -4,6 +4,7 @@ import chatting.utils.JwtTokenProvider;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -16,7 +17,9 @@ import java.io.IOException;
 public class CustomAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final String reactAppUrl = "https://my-cloud-project2222.duckdns.org";
+
+    @Value("${app.oauth2.authorized-redirect-uri}")
+    private String reactAppUrl;
 
     public CustomAuthenticationSuccessHandler(JwtTokenProvider jwtTokenProvider) {
         this.jwtTokenProvider = jwtTokenProvider;
@@ -33,6 +36,9 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                 .anyMatch(role -> role.equals("ROLE_GUEST"));
 
         String targetUrl;
+
+        System.out.println("✅ Login Success via: " + reactAppUrl);
+
         if (hasGuestRole) {
             // 권한이 "ROLE_GUEST" (신규 소셜 사용자)이면
             // 추가 정보 입력 페이지로 리다이렉트
