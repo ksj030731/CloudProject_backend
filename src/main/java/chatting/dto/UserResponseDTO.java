@@ -2,15 +2,12 @@ package chatting.dto;
 
 import chatting.config.auth.PrincipalDetails;
 import chatting.domain.User; // User 엔티티 import (from(User) 메서드용)
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
+@Setter
 @Getter
 @Builder
 @NoArgsConstructor
@@ -26,6 +23,9 @@ public class UserResponseDTO {
     private String role;
     private String region;
     private String joinDate;
+
+    @Builder.Default
+    private List<Long> favorites = new ArrayList<>();
 
     @Builder.Default
     private Double totalDistance = 0.0;
@@ -60,25 +60,38 @@ public class UserResponseDTO {
     }
 
     // 2. PrincipalDetails(세션)에서 DTO 변환 (로그인 직후 등 세션 정보용)
+    // UserResponseDTO.java
+
+    // ... 기존 코드 ...
+
+    // 2. PrincipalDetails(세션)에서 DTO 변환
     public static UserResponseDTO from(PrincipalDetails principalDetails) {
-        // principalDetails에는 nickname, picture 필드가 없으므로
-        // username을 닉네임 대신 사용하고, 사진은 null로 설정합니다.
+
+        //  실제 닉네임을 가져오고, 없으면 기본값 설정
+        String displayName = principalDetails.getNickname();
+        if (displayName == null || displayName.isEmpty()) {
+            // 닉네임이 없으면 이메일 앞부분이라도 보여주기 (google_... 보단 나음)
+            displayName = principalDetails.getEmail().split("@")[0];
+        }
+
         return UserResponseDTO.builder()
                 .id(principalDetails.getId())
                 .username(principalDetails.getUsername())
                 .email(principalDetails.getEmail())
-                .nickname(principalDetails.getUsername()) // nickname 대신 username 사용 (fallback)
-                .picture(null) // picture 정보 없음
+
+                .nickname(displayName) //
+
+                .picture(null) // 세션에 사진 정보가 없다면 null이 맞음
                 .region(principalDetails.getRegion())
                 .provider(principalDetails.getProvider())
                 .role(principalDetails.getRole())
-                //실제 가입일 연결
-                //PrincipalDetails에 값이 있으면 변환, 없으면 현재 날짜
+
+                // 가입일 처리 (null 안전 처리)
                 .joinDate(principalDetails.getCreateDate() != null
                         ? principalDetails.getCreateDate().toLocalDate().toString()
                         : java.time.LocalDate.now().toString())
 
-                // 실제 총 거리 연결
+                // 거리 처리
                 .totalDistance(principalDetails.getTotalDistance() != null
                         ? principalDetails.getTotalDistance()
                         : 0.0)

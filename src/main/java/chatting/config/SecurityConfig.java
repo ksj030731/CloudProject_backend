@@ -47,7 +47,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:5173",   // 로컬 개발
+                "http://localhost:5173",
+                "http://localhost:5174", // 로컬 개발
                 "http://localhost:4173",   // 로컬 빌드
                 "http://49.50.128.20",     // 서버 IP
                 "https://my-cloud-project2222.duckdns.org" // 도메인 (끝에 / 제거)
@@ -87,7 +88,7 @@ public class SecurityConfig {
                         ).permitAll()
 
                         .requestMatchers(HttpMethod.GET,
-                                "/api/courses/**", "/api/reviews/**", "/api/announcements/**",
+                                "/api/courses/**", "/api/reviews/**", "/api/announcements/**", "/api/auth/**",
                                 "/api/badges/**", "/api/rankings/**", "/api/user/**"
                         ).permitAll()
 

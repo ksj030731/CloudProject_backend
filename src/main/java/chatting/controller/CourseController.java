@@ -1,15 +1,19 @@
 package chatting.controller;
 
+import chatting.config.auth.PrincipalDetails;
+import chatting.domain.User;
 import chatting.dto.CourseResponseDto;
 import chatting.service.CourseService;
+import chatting.service.FavoriteService;
+import chatting.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j; // 💡 로그 사용을 위한 import
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping; // 💡 @RequestMapping 추가
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.attribute.UserPrincipal;
 import java.util.List;
 
 @Slf4j // 로그 기능 활성화
@@ -19,7 +23,7 @@ import java.util.List;
 public class CourseController {
 
     private final CourseService courseService;
-
+    private final FavoriteService favoriteService;
     // 1. 전체 코스 목록 조회 API
     // 주소: GET /api/courses
     @GetMapping
@@ -54,5 +58,18 @@ public class CourseController {
 
         // 4. 조회된 상세 정보를 HTTP 200 OK 상태 코드와 함께 반환
         return ResponseEntity.ok(courseDetail);
+    }
+
+    @PostMapping("/{courseId}/favorite")
+    public ResponseEntity<String> toggleFavorite(
+            @PathVariable Long courseId,
+            @AuthenticationPrincipal PrincipalDetails principalDetails // 스프링 시큐리티가 주입해줌
+    ) {
+        if (principalDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
+
+        String result = favoriteService.toggleFavorite(principalDetails.getUsername(), courseId);
+        return ResponseEntity.ok(result);
     }
 }

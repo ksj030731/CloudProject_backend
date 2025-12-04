@@ -1,8 +1,3 @@
-/**
- *
- * @author 김성준
- * 2025.11.04 작성
- */
 package chatting.dto;
 
 import chatting.domain.User;
@@ -11,17 +6,15 @@ import lombok.Getter;
 
 import java.util.Map;
 
-
-
 @Getter
-//google JSON을 OAuthAttributes 객체에 매핑, toEntity() 에서 ROLE_GUEST를 부여함
 public class OAuthAttributes {
-    private Map<String , Object> attributes;
+    private Map<String, Object> attributes;
     private String nameAttributeKey;
-    private String username; //(Google의 name)
+    private String username; // 이제 여기에 "google_12345" 같은 고유 ID가 들어갑니다.
     private String email;
     private String picture;
     private String provider;
+    private String realName; // (선택) 실제 이름을 따로 저장하고 싶다면 필드 추가
 
     @Builder
     public OAuthAttributes(Map<String, Object> attributes, String nameAttributeKey, String username, String email, String picture, String provider) {
@@ -33,41 +26,40 @@ public class OAuthAttributes {
         this.provider = provider;
     }
 
-    //customOAuth2UserDetails 클래스에서 registrationId(ex: "google", "naver") 정보를 보내서 분기처리하게 만듦
     public static OAuthAttributes of(String registrationId, String userNameAttributeName, Map<String, Object> attributes) {
-
-
         if ("naver".equals(registrationId)) {
             return ofNaver(userNameAttributeName, attributes);
         }
-
-
-
         if ("kakao".equals(registrationId)) {
             return ofKakao(userNameAttributeName, attributes);
         }
-
         return ofGoogle(userNameAttributeName, attributes);
     }
 
-    private static OAuthAttributes ofGoogle(String userNameAttributeName, Map<String, Object> attributes){
-            return OAuthAttributes.builder()
-                    .username((String) attributes.get("name")) // 'name'을 username 필드에 매핑
-                    .email((String) attributes.get("email"))
-                    .picture((String) attributes.get("picture"))
-                    .provider("google")
-                    .attributes(attributes)
-                    .nameAttributeKey(userNameAttributeName)
-                    .build();
+    //
+    private static OAuthAttributes ofGoogle(String userNameAttributeName, Map<String, Object> attributes) {
+        // 구글의 고유 ID는 "sub"에 있습니다.
+        String providerId = (String) attributes.get("sub");
 
+        return OAuthAttributes.builder()
+                .username("google_" + providerId) // 예: google_123456789 (중복 안 됨!)
+                .email((String) attributes.get("email"))
+                .picture((String) attributes.get("picture"))
+                .provider("google")
+                .attributes(attributes)
+                .nameAttributeKey(userNameAttributeName)
+                .build();
     }
 
-
+    // 네이버
     private static OAuthAttributes ofNaver(String userNameAttributeName, Map<String, Object> attributes) {
         Map<String, Object> response = (Map<String, Object>) attributes.get("response");
 
+        // 네이버의 고유 ID는 response 안의 "id"에 있습니다.
+        String providerId = (String) response.get("id");
+
         return OAuthAttributes.builder()
-                .username((String) response.get("name"))
+                .username("naver_" + providerId) // 예: naver_AbCdEf...
                 .email((String) response.get("email"))
                 .picture((String) response.get("profile_image"))
                 .provider("naver")
@@ -76,14 +68,16 @@ public class OAuthAttributes {
                 .build();
     }
 
-
-
+    // 카카오
     private static OAuthAttributes ofKakao(String userNameAttributeName, Map<String, Object> attributes) {
         Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
         Map<String, Object> kakaoProfile = (Map<String, Object>) kakaoAccount.get("profile");
 
+        // 카카오는 root attributes에 "id"가 있습니다. (보통 Long 타입이라 String 변환 필요)
+        String providerId = String.valueOf(attributes.get("id"));
+
         return OAuthAttributes.builder()
-                .username((String) kakaoProfile.get("nickname"))
+                .username("kakao_" + providerId) // 예: kakao_12345
                 .email((String) kakaoAccount.get("email"))
                 .picture((String) kakaoProfile.get("profile_image_url"))
                 .provider("kakao")
@@ -92,21 +86,14 @@ public class OAuthAttributes {
                 .build();
     }
 
-
-
-    //  신규 사용자일 경우, DTO -> Entity로 변환
     public User toEntity() {
         return User.builder()
-                .username(username) // (Google 'name')
+                .username(username) // 이제 고유한 ID가 들어갑니다.
                 .email(email)
                 .picture(picture)
                 .provider(provider)
-                .role("ROLE_GUEST") //  신규 가입 시 임시 권한 부여
-                // password, nickname, region은 null 상태
+                .role("ROLE_GUEST")
+                // nickname은 초기엔 null로 두거나, 필요하면 "게스트" 등으로 설정
                 .build();
     }
-
-
-
-
 }
