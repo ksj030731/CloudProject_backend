@@ -67,6 +67,8 @@ public class User {
     @Column(nullable = false)
     private Double totalDistance = 0.0;
 
+
+
     @Builder
     public User(String username, String nickname, String email, String picture, String provider, String role,
             String password, String region) {

@@ -20,13 +20,15 @@ public class PrincipalDetails implements UserDetails, OAuth2User , Serializable 
     private static final long serialVersionUID = 1L;
     // (User 엔티티 대신) DB에서 가져온 '데이터'를 직접 필드로 가짐
     private Long id;
-    private String username;
+    private String username; // id임
+    private String nickname;
     private String password; // (null일 수 있음)
     private String email;
     private String role;
     private String provider;
     private Map<String, Object> attributes; // (OAuth2User)
     private String region;
+
 
     private LocalDateTime createDate;
     private Double totalDistance;

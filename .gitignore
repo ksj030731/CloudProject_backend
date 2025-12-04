@@ -36,8 +36,6 @@ out/
 ### VS Code ###
 .vscode/
 
-src/main/resources/application-local.properties
-src/main/resources/application-prod.properties
 
 
 # 로그 파일

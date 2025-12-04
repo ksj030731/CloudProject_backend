@@ -28,17 +28,19 @@ public class UserService {
     public void registerUser(GeneralRegisterRequestDto dto) {
 
         // 1. [로그] 가입 요청 확인
-        log.info("일반 회원가입 요청: username={}", dto.getUsername());
+        log.info("일반 회원가입 요청: username={}", dto.getEmail());
 
         // 2. [중복 검사] 이미 존재하는 아이디인지 확인
-        if (userRepository.findByUsername(dto.getUsername()).isPresent()) {
-            log.warn("회원가입 실패: 이미 존재하는 아이디({})입니다.", dto.getUsername());
+        if (userRepository.findByUsername(dto.getEmail()).isPresent()) {
+            log.warn("회원가입 실패: 이미 존재하는 아이디({})입니다.", dto.getEmail());
             throw new RuntimeException("이미 존재하는 아이디입니다.");
         }
 
+        String loginId = dto.getEmail();
+
         // 3. [엔티티 생성] 비밀번호 암호화 필수!
         User user = User.builder()
-                .username(dto.getUsername())
+                .username(loginId)
                 .password(bCryptPasswordEncoder.encode(dto.getPassword())) // 🔒 비밀번호 암호화
                 .email(dto.getEmail())
                 .nickname(dto.getNickname())
@@ -86,4 +88,10 @@ public class UserService {
         }
         return UserResponseDTO.from(user);
     }
+
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
+    }
+
 }
