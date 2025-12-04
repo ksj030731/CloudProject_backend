@@ -21,23 +21,24 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @NoArgsConstructor
 @Entity
 @EntityListeners(AuditingEntityListener.class) // 이게 있어야 @CreatedDate가 작동해서 가입일이 자동으로 들어감
-@Table(name = "users", uniqueConstraints ={
-        //username과 email이 중복되지 않도록 설정
+@Table(name = "users", uniqueConstraints = {
+        // username과 email이 중복되지 않도록 설정
         @UniqueConstraint(columnNames = "username"),
-        @UniqueConstraint(columnNames =  "email")
+        @UniqueConstraint(columnNames = "email")
 })
 public class User {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    //(일반 로그인용 ID)
-    @Column(nullable = false , length = 50)
+    // (일반 로그인용 ID)
+    @Column(nullable = false, length = 50)
     private String username;
 
-    @Column( length = 50)
+    @Column(length = 50)
     private String nickname;
 
-    @Column(nullable = false , length = 100)
+    @Column(nullable = false, length = 100)
     private String email;
 
     @Column
@@ -54,7 +55,7 @@ public class User {
     @Column
     private String password;
 
-    //(필수) 지역정보
+    // (필수) 지역정보
     @Column
     private String region;
 
@@ -67,7 +68,8 @@ public class User {
     private Double totalDistance = 0.0;
 
     @Builder
-    public User(String username, String nickname, String email, String picture, String provider, String role, String password, String region) {
+    public User(String username, String nickname, String email, String picture, String provider, String role,
+            String password, String region) {
         this.username = username;
         this.nickname = nickname;
         this.email = email;
@@ -85,19 +87,29 @@ public class User {
         return this;
     }
 
-    //소셜 로그인 후 추가 정보(닉네임 , 지역) 가입 및 등업
+    // 소셜 로그인 후 추가 정보(닉네임 , 지역) 가입 및 등업
     public User updateSocialInfo(String nickname, String region) {
         this.nickname = nickname;
         this.region = region;
         this.role = "ROLE_USER"; // GUEST -> USER 등업
         return this;
     }
-    //거리를 더하는 편의 메서드 (나중에 완주 시 사용)
+
+    // 거리를 더하는 편의 메서드 (나중에 완주 시 사용)
     public void addDistance(Double distance) {
         if (this.totalDistance == null) {
             this.totalDistance = 0.0;
         }
         this.totalDistance += distance;
     }
+
+    @OneToMany(mappedBy = "user")
+    private java.util.List<UserBadge> userBadges = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private java.util.List<UserSection> userSections = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private java.util.List<UserCourse> userCourses = new java.util.ArrayList<>();
 
 }

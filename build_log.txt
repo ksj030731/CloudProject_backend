@@ -1,0 +1,35 @@
+> Task :clean
+
+> Task :compileJava FAILED
+D:\CloudProject_front\CloudProject_backend\src\main\java\chatting\service\CourseService.java:20: error: cannot find symbol
+    private final chatting.repository.SectionRepository sectionRepository;
+                                     ^
+  symbol:   class SectionRepository
+  location: package chatting.repository
+D:\CloudProject_front\CloudProject_backend\src\main\java\chatting\service\CourseService.java:16: error: cannot find symbol
+@RequiredArgsConstructor
+^
+  symbol:   class SectionRepository
+  location: package chatting.repository
+2 errors
+
+[Incubating] Problems report is available at: file:///D:/CloudProject_front/CloudProject_backend/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Compilation failed; see the compiler output below.
+  D:\CloudProject_front\CloudProject_backend\src\main\java\chatting\service\CourseService.java:20: error: cannot find symbol
+      private final chatting.repository.SectionRepository sectionRepository;
+                                       ^
+    symbol:   class SectionRepository
+    location: package chatting.repository
+  2 errors
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights.
+
+BUILD FAILED in 2s
+2 actionable tasks: 2 executed
