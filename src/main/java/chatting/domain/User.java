@@ -64,10 +64,13 @@ public class User {
     private LocalDateTime createDate;
 
     // 총 거리 (기본값 0.0으로 초기화)
+    // 총 거리 (기본값 0.0으로 초기화)
     @Column(nullable = false)
     private Double totalDistance = 0.0;
 
-
+    // 완주한 코스 개수 (기본값 0)
+    @Column(nullable = false)
+    private Integer completedCourseCount = 0;
 
     @Builder
     public User(String username, String nickname, String email, String picture, String provider, String role,

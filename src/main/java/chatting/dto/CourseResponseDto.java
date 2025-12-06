@@ -55,6 +55,7 @@ public class CourseResponseDto {
     @Getter
     @NoArgsConstructor
     public static class SectionDto {
+        private Long id; // QR 인증에 필요
         private String sectionCode;
         private String name;
         private Double distance;
@@ -65,6 +66,7 @@ public class CourseResponseDto {
         private List<String> checkpoints;
 
         public SectionDto(Section section) {
+            this.id = section.getId();
             this.sectionCode = section.getSectionCode();
             this.name = section.getName();
             this.distance = section.getDistance();

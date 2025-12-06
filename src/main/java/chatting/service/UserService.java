@@ -57,12 +57,12 @@ public class UserService {
     /**
      * 2. 소셜 로그인 후 추가 정보 입력 (기존 코드 유지)
      */
-    public void completeSocialSignup(Long userId, SocialRegisterRequestDto dto){
+    public void completeSocialSignup(Long userId, SocialRegisterRequestDto dto) {
 
         log.info("DB: 소셜 회원가입 정보 업데이트 시작. User ID: {}", userId);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(()-> {
+                .orElseThrow(() -> {
                     log.error("업데이트 실패: ID {}에 해당하는 사용자를 DB에서 찾을 수 없습니다.", userId);
                     return new RuntimeException("유저를 찾을 수 없습니다.");
                 });
@@ -75,23 +75,36 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponseDTO updateUser(Long userId , UserUpdateDTO updateDto){
+    public UserResponseDTO updateUser(Long userId, UserUpdateDTO updateDto) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(()-> new IllegalArgumentException("해당 사용자가 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 없습니다."));
 
-        if(updateDto.getNickname() !=null){
+        if (updateDto.getNickname() != null) {
             user.setNickname(updateDto.getNickname());
         }
-        if(updateDto.getRegion() !=null){
+        if (updateDto.getRegion() != null) {
             user.setRegion(updateDto.getRegion());
         }
         return UserResponseDTO.from(user);
     }
 
+    private final chatting.repository.UserCourseRepository userCourseRepository;
+
+    public java.util.List<Long> getCompletedCourseIds(Long userId) {
+        return userCourseRepository.findByUserId(userId).stream()
+                .map(userCourse -> userCourse.getCourse().getId())
+                .collect(java.util.stream.Collectors.toList());
+    }
+
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
+    }
+
+    public User findById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
 
 }

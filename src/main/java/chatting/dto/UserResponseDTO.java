@@ -7,6 +7,7 @@ import lombok.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 @Setter
 @Getter
 @Builder
@@ -31,6 +32,9 @@ public class UserResponseDTO {
     private Double totalDistance = 0.0;
 
     @Builder.Default
+    private Integer completedCourseCount = 0;
+
+    @Builder.Default
     private List<Long> completedCourses = new ArrayList<>();
 
     @Builder.Default
@@ -47,15 +51,20 @@ public class UserResponseDTO {
                 .region(user.getRegion())
                 .provider(user.getProvider())
                 .role(user.getRole())
-                //  실제 가입일 연결 (null일 경우 대비)
+                // 실제 가입일 연결 (null일 경우 대비)
                 .joinDate(user.getCreateDate() != null
-                ? user.getCreateDate().toLocalDate().toString()
-                : java.time.LocalDate.now().toString())
+                        ? user.getCreateDate().toLocalDate().toString()
+                        : java.time.LocalDate.now().toString())
 
-                //  실제 총 거리 연결
-                .totalDistance(user.getTotalDistance() != null ? user.getTotalDistance() : 0.0)   // 임시 데이터
-                .completedCourses(Collections.emptyList())
-                .badges(Collections.emptyList())
+                // 실제 총 거리 연결
+                .totalDistance(user.getTotalDistance() != null ? user.getTotalDistance() : 0.0)
+                // 완주 코스 개수 연결
+                .completedCourseCount(user.getCompletedCourseCount() != null ? user.getCompletedCourseCount() : 0)
+                // 완주한 코스 ID 목록 연결
+                .completedCourses(user.getUserCourses().stream()
+                        .map(uc -> uc.getCourse().getId())
+                        .collect(java.util.stream.Collectors.toList()))
+                .badges(Collections.emptyList()) // 뱃지는 별도 로직으로 채우거나 여기서 생략(Controller에서 채움)
                 .build();
     }
 
@@ -67,7 +76,7 @@ public class UserResponseDTO {
     // 2. PrincipalDetails(세션)에서 DTO 변환
     public static UserResponseDTO from(PrincipalDetails principalDetails) {
 
-        //  실제 닉네임을 가져오고, 없으면 기본값 설정
+        // 실제 닉네임을 가져오고, 없으면 기본값 설정
         String displayName = principalDetails.getNickname();
         if (displayName == null || displayName.isEmpty()) {
             // 닉네임이 없으면 이메일 앞부분이라도 보여주기 (google_... 보단 나음)
@@ -95,6 +104,7 @@ public class UserResponseDTO {
                 .totalDistance(principalDetails.getTotalDistance() != null
                         ? principalDetails.getTotalDistance()
                         : 0.0)
+                .completedCourseCount(0) // 세션 정보에는 아직 없을 수 있음
                 .completedCourses(Collections.emptyList())
                 .badges(Collections.emptyList())
                 .build();

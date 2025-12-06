@@ -21,6 +21,7 @@ public class CourseController {
 
     private final CourseService courseService;
     private final FavoriteService favoriteService;
+
     // 1. 전체 코스 목록 조회 API
     // 주소: GET /api/courses
     @GetMapping
@@ -68,5 +69,18 @@ public class CourseController {
 
         String result = favoriteService.toggleFavorite(principalDetails.getUsername(), courseId);
         return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/{courseId}/sections/{sectionId}/complete")
+    public ResponseEntity<String> completeSection(
+            @PathVariable Long courseId,
+            @PathVariable Long sectionId,
+            @AuthenticationPrincipal PrincipalDetails principalDetails) {
+        if (principalDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
+
+        courseService.completeSection(principalDetails.getId(), sectionId);
+        return ResponseEntity.ok("섹션 인증 완료");
     }
 }
